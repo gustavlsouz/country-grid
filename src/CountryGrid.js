@@ -1,6 +1,7 @@
 import React from 'react'
 
 import PanelForm from './components/Panels/PanelForm'
+import PanelTables from './components/Panels/PanelTables'
 
 import requests from './utils/requests'
 
@@ -14,7 +15,6 @@ class CountryGrid extends React.Component {
 			, orderByAZ: "order"
 		}
 
-					// , view: { }
 		/** orderBy
 		 * name
 			population
@@ -88,17 +88,17 @@ class CountryGrid extends React.Component {
 				/**
 				 * neste caso para simplificar o agrupamento.
 				 */
-				const countries = this.prepareCountries(resp.data)				
+				const countries = this.prepareCountries(resp.data)
 				this.setState({ countries }, this.makeView)
 			})
 	}
 
 	prepareCountries(countries) {
 		countries = countries.map((country) => {
-			
+
 			country.currency = country.currencies[0]["name"]
 			country.language = country.languages[0]["name"]
-			
+
 			return country
 		})
 		return countries
@@ -120,41 +120,28 @@ class CountryGrid extends React.Component {
 
 		const newOrder = this.state.countries.sort(this.state.orderByAZ === "reverseOrder" ? reverseOrder : order)
 
-		// console.log("newOrder")
-		// console.log(newOrder)
 		const newGroup = newOrder.reduce((obj, currentCountry) => {
 
 			const currentKeyGroup = currentCountry[this.state.groupBy]
-			// console.log(currentKeyGroup)
-
-			// console.log("content")
-			// console.log(obj[currentKeyGroup])
 
 			if (obj[currentKeyGroup] === undefined) {
 				const newList = []
 				newList.push(currentCountry)
 				obj[currentKeyGroup] = newList
-				
+
 			} else {
 				obj[currentKeyGroup].push(currentCountry)
 			}
 
 			return obj
 		}, {})
-		
-		// Object.keys(newGroup).forEach(key => {
-		// 	console.log(key)
-		// 	console.log(newGroup[key])
-		// })
 
-		// Object.values(newGroup).forEach(group => console.log(group))
-		
-		this.setState({ view: newGroup})
+		this.setState({ view: newGroup })
 	}
 
 	mountRow(country, idx) {
 
-		const wiki = (data, sufix="") => {
+		const wiki = (data, sufix = "") => {
 			if (sufix !== "") {
 				sufix = `_${sufix}`
 			}
@@ -173,7 +160,7 @@ class CountryGrid extends React.Component {
 				<td>{wiki(country.region)}</td>
 				<td>{wiki(country.capital)}</td>
 				<td>{country.alpha3Code}</td>
-				<td>{country.population}</td>
+				<td>{Math.round((country.population / 1000000) * 100) / 100}</td>
 				<td>{wiki(country.currency)}</td>
 				<td>{wiki(country.language, "language")}</td>
 			</tr>
@@ -181,8 +168,6 @@ class CountryGrid extends React.Component {
 	}
 
 	renderTables() {
-
-		console.log("renderTables")
 
 		const tables = Object.keys(this.state.view).sort().map((key, idx) => {
 			const countryList = this.state.view[key]
@@ -201,21 +186,21 @@ class CountryGrid extends React.Component {
 								<th>Region</th>
 								<th>Capital</th>
 								<th>Code</th>
-								<th>Population</th>
+								<th>Population(Million)</th>
 								<th>Currency</th>
 								<th>Language</th>
 							</tr>
 						</thead>
 						<tbody>
-								{
-									countryList.map(this.mountRow)
-								}
+							{
+								countryList.map(this.mountRow)
+							}
 						</tbody>
 					</table>
 				</div>
 			)
 		})
-		
+
 		return (
 			<div>
 				{tables}
@@ -224,7 +209,7 @@ class CountryGrid extends React.Component {
 	}
 
 	onSubmit(submittedValues) {
-		console.log(submittedValues)
+
 		if (typeof submittedValues.orderBy && submittedValues.groupBy) {
 			this.setState(submittedValues, this.makeView)
 		}
@@ -234,8 +219,13 @@ class CountryGrid extends React.Component {
 		return (
 			<div id="country-grid">
 				<PanelForm statusOptions={this.statusOptions}
-					onSubmit={this.onSubmit}/>
-			{ typeof this.state.view === "undefined" ? null : this.renderTables() }
+					onSubmit={this.onSubmit} />
+				{
+					typeof this.state.view === "object"
+						? (<PanelTables list={Object.keys(this.state.view).sort()} />)
+						: null
+				}
+				{typeof this.state.view === "undefined" ? null : this.renderTables()}
 			</div>
 		)
 	}

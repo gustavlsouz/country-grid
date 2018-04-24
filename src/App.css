@@ -35,3 +35,11 @@ img.country-image {
 div.group-container {
   margin: 45px;
 }
+
+span.group-item {
+  margin: 10px;
+}
+
+.container {
+  flex: 0.7
+}
