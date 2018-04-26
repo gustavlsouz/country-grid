@@ -4,7 +4,7 @@ const PanelTables = props => {
 	const mountItem = (item, idx) => {
 		if (idx % 10 === 0 ) {
 			return (
-				<div className="group-item">
+				<div className="group-item" key={`hash-${idx}`}>
 					<a href={`#${item}`}>
 						#{item}
 					</a>
@@ -12,7 +12,7 @@ const PanelTables = props => {
 			)
 		}
 		return (
-			<span className="group-item">
+			<span className="group-item" key={`hash-${idx}`}>
 				<a href={`#${item}`}>
 					#{item}
 				</a>

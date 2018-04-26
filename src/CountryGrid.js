@@ -4,6 +4,7 @@ import PanelForm from './components/Panels/PanelForm'
 import PanelTables from './components/Panels/PanelTables'
 
 import requests from './utils/requests'
+import arrayHandler from './utils/array.handler'
 
 class CountryGrid extends React.Component {
 	constructor(props) {
@@ -13,6 +14,7 @@ class CountryGrid extends React.Component {
 			orderBy: "name"
 			, groupBy: "region"
 			, orderByAZ: "order"
+			, search: ""
 		}
 
 		/** orderBy
@@ -72,14 +74,26 @@ class CountryGrid extends React.Component {
 			]
 		}
 
-
-		this.requests = requests()
-
+		
+		
 		this.makeView = this.makeView.bind(this)
 		this.prepareCountries = this.prepareCountries.bind(this)
 		this.mountRow = this.mountRow.bind(this)
 		this.onSubmit = this.onSubmit.bind(this)
+		this.getSearchFields = this.getSearchFields.bind(this)
+		
+		this.requests = requests()
+		this.searchFields = this.getSearchFields()
 
+		
+	}
+
+	getSearchFields() {
+		let searchFields = []
+		searchFields.concat(this.statusOptions.groupBy.map(option => option.value))
+		searchFields.concat(this.statusOptions.orderBy.map(option => option.value))
+		searchFields = arrayHandler.distinct(searchFields)
+		return searchFields
 	}
 
 	componentDidMount() {
@@ -105,24 +119,36 @@ class CountryGrid extends React.Component {
 	}
 
 	makeView() {
+		const state = this.state
+
+		let countries = state.countries
 
 		const order = (a, b) => {
-			if (a[this.state.orderBy] < b[this.state.orderBy]) return -1;
-			if (a[this.state.orderBy] > b[this.state.orderBy]) return 1;
+			if (a[state.orderBy] < b[state.orderBy]) return -1;
+			if (a[state.orderBy] > b[state.orderBy]) return 1;
 			return 0;
 		}
 
 		const reverseOrder = (a, b) => {
-			if (a[this.state.orderBy] > b[this.state.orderBy]) return -1;
-			if (a[this.state.orderBy] < b[this.state.orderBy]) return 1;
+			if (a[state.orderBy] > b[state.orderBy]) return -1;
+			if (a[state.orderBy] < b[state.orderBy]) return 1;
 			return 0;
 		}
 
-		const newOrder = this.state.countries.sort(this.state.orderByAZ === "reverseOrder" ? reverseOrder : order)
+		const searchCountries = (countryObj, textToFind) => {
+			countryObj[]
+			return countryObj
+		}
+
+		if (state.search.trim().length > 0) {
+			countries.filter((country) => searchCountries(country, state.search))
+		}
+
+		const newOrder = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
 
 		const newGroup = newOrder.reduce((obj, currentCountry) => {
 
-			const currentKeyGroup = currentCountry[this.state.groupBy]
+			const currentKeyGroup = currentCountry[state.groupBy]
 
 			if (obj[currentKeyGroup] === undefined) {
 				const newList = []
