@@ -81,18 +81,26 @@ class CountryGrid extends React.Component {
 		this.mountRow = this.mountRow.bind(this)
 		this.onSubmit = this.onSubmit.bind(this)
 		this.getSearchFields = this.getSearchFields.bind(this)
+		this.onChange = this.onChange.bind(this)
 		
 		this.requests = requests()
 		this.searchFields = this.getSearchFields()
 
-		
+
 	}
 
 	getSearchFields() {
+		// console.log("getSearchFields")
 		let searchFields = []
-		searchFields.concat(this.statusOptions.groupBy.map(option => option.value))
-		searchFields.concat(this.statusOptions.orderBy.map(option => option.value))
+
+		const groupByValues = this.statusOptions.groupBy.map(option => option.value)
+		const orderByValues = this.statusOptions.orderBy.map(option => option.value)
+		
+		searchFields = searchFields.concat(groupByValues)
+		searchFields = searchFields.concat(orderByValues)
+
 		searchFields = arrayHandler.distinct(searchFields)
+		
 		return searchFields
 	}
 
@@ -136,12 +144,31 @@ class CountryGrid extends React.Component {
 		}
 
 		const searchCountries = (countryObj, textToFind) => {
-			countryObj[]
-			return countryObj
+			const regex = new RegExp(textToFind, "gi")
+			
+			// console.log("this.searchFields")
+			// console.log(this.searchFields)
+			
+			const results = this.searchFields.map(fieldSearch => {
+				// console.log("fieldSearch")
+				// console.log(fieldSearch)
+				const value = countryObj[fieldSearch]
+				return regex.test(value)
+			})
+
+			// console.log(results)
+			if (results.indexOf(true) > -1) {
+				return true
+			}
+
+			return false
 		}
 
 		if (state.search.trim().length > 0) {
-			countries.filter((country) => searchCountries(country, state.search))
+			// console.log("filtrando")
+			countries = countries.filter((country) => searchCountries(country, state.search))
+			// console.log("filtered")
+			// console.log(countries)
 		}
 
 		const newOrder = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
@@ -241,11 +268,20 @@ class CountryGrid extends React.Component {
 		}
 	}
 
+	onChange(formState, formApi) {
+		const values = Object.assign({}, this.state, formState.values)
+
+		console.log(values)
+
+		this.setState(values, this.makeView)
+	}
+
 	render() {
 		return (
 			<div id="country-grid">
 				<PanelForm statusOptions={this.statusOptions}
-					onSubmit={this.onSubmit} />
+					onSubmit={this.onSubmit} 
+					onChange={this.onChange}/>
 				{
 					typeof this.state.view === "object"
 						? (<PanelTables list={Object.keys(this.state.view).sort()} />)

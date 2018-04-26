@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Form, Select } from 'react-form';
+import { Form, Select, Text } from 'react-form';
 
 const PanelForm = props => {
 
@@ -25,7 +25,9 @@ const PanelForm = props => {
 	
 	return (
 		<span className="container">
-			<Form onSubmit={submittedValues => props.onSubmit(submittedValues)}>
+			<Form onSubmit={submittedValues => props.onSubmit(submittedValues)}
+				onChange={props.onChange}
+			>
 				{formApi => (
 					<form onSubmit={formApi.submitForm} id="select-input-form" className="form">
 						<FieldForm
@@ -43,6 +45,8 @@ const PanelForm = props => {
 							name="order-by-az"
 							options={props.statusOptions.orderByAZ}
 							field="orderByAZ" />
+
+						<Text field="search"/>
 
 						<button type="submit" className="mb-4 btn btn-primary">Atualizar</button>
 					</form>
