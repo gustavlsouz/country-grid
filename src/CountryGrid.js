@@ -5,7 +5,9 @@ import PanelTables from './components/panels/PanelTables'
 
 import requests from './utils/requests'
 import { onlyChars } from './utils/strings'
+import wiki from './utils/wiki'
 import arrayHandler from './utils/array.handler'
+
 
 class CountryGrid extends React.Component {
 	constructor(props) {
@@ -16,6 +18,7 @@ class CountryGrid extends React.Component {
 			, groupBy: "region"
 			, orderByAZ: "order"
 			, search: ""
+			, showHashtags: true
 		}
 
 		/** orderBy
@@ -75,15 +78,17 @@ class CountryGrid extends React.Component {
 			]
 		}
 
-		
-		
+
+
 		this.makeView = this.makeView.bind(this)
 		this.prepareCountries = this.prepareCountries.bind(this)
 		this.mountRow = this.mountRow.bind(this)
 		this.onSubmit = this.onSubmit.bind(this)
 		this.getSearchFields = this.getSearchFields.bind(this)
 		this.onChange = this.onChange.bind(this)
-		
+		this.onToggle = this.onToggle.bind(this)
+		this.renderPanelTables = this.renderPanelTables.bind(this)
+
 		this.requests = requests()
 		this.searchFields = this.getSearchFields()
 
@@ -95,12 +100,12 @@ class CountryGrid extends React.Component {
 
 		const groupByValues = this.statusOptions.groupBy.map(option => option.value)
 		const orderByValues = this.statusOptions.orderBy.map(option => option.value)
-		
+
 		searchFields = searchFields.concat(groupByValues)
 		searchFields = searchFields.concat(orderByValues)
 
 		searchFields = arrayHandler.distinct(searchFields)
-		
+
 		return searchFields
 	}
 
@@ -145,8 +150,8 @@ class CountryGrid extends React.Component {
 
 		const searchCountries = (countryObj, textToFind) => {
 			const regex = new RegExp(textToFind, "gi")
-			
-			
+
+
 			const results = this.searchFields.map(fieldSearch => {
 				const value = countryObj[fieldSearch]
 				return regex.test(value)
@@ -187,17 +192,6 @@ class CountryGrid extends React.Component {
 	}
 
 	mountRow(country, idx) {
-
-		const wiki = (data, sufix = "") => {
-			if (sufix !== "") {
-				sufix = `_${sufix}`
-			}
-			return (
-				<a target="_blank" href={`https://en.wikipedia.org/wiki/${data.replace(/ /g, "_")}${sufix}`}>
-					{data}
-				</a>
-			)
-		}
 
 		return (
 			<tr key={`${country}-${idx}`}>
@@ -270,19 +264,35 @@ class CountryGrid extends React.Component {
 		this.setState(values, this.makeView)
 	}
 
+	onToggle(value) {
+		this.setState(prevState => ({ showHashtags: !prevState.showHashtags }))
+	}
+
+	renderPanelTables() {
+		if (typeof this.state.view === "object" && this.state.showHashtags) {
+			return (<PanelTables list={Object.keys(this.state.view).sort()} />)
+		}
+		return null
+	}
+
 	render() {
 		return (
-			<main id="country-grid">
+			<div id="country-grid">
+
 				<PanelForm statusOptions={this.statusOptions}
-					onSubmit={this.onSubmit} 
-					onChange={this.onChange}/>
+					onSubmit={this.onSubmit}
+					onChange={this.onChange} 
+					showHashtags={this.state.showHashtags}
+					onToggle={this.onToggle}
+					/>
+
+
 				{
-					typeof this.state.view === "object"
-						? (<PanelTables list={Object.keys(this.state.view).sort()} />)
-						: null
+					this.renderPanelTables()
 				}
+
 				{typeof this.state.view === "undefined" ? null : this.renderTables()}
-			</main>
+			</div>
 		)
 	}
 }

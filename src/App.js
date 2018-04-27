@@ -15,14 +15,14 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 class App extends Component {
   render() {
     return (
-      <div className="App">
+      <main className="App">
         
         <Header title="Welcome to the country grid!! :)"
           logo={logo} />
 
         <CountryGrid />
 
-      </div>
+      </main>
     );
   }
 }

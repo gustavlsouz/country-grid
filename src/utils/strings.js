@@ -20,6 +20,14 @@ const onlyChars = (string, regex = /[0-9a-z ]+/gi, join = "", options) => {
     return string;
 }
 
+const capitalize = string => {
+    if (typeof string === "string") {
+        string = string.replace(/\b\w/g, l => l.toUpperCase())
+    }
+    return string
+}
+
 export {
     onlyChars
+    , capitalize
 }
