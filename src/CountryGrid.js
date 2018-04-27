@@ -1,7 +1,7 @@
 import React from 'react'
 
-import PanelForm from './components/Panels/PanelForm'
-import PanelTables from './components/Panels/PanelTables'
+import PanelForm from './components/panels/PanelForm'
+import PanelTables from './components/panels/PanelTables'
 
 import requests from './utils/requests'
 import arrayHandler from './utils/array.handler'
