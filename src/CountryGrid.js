@@ -4,6 +4,7 @@ import PanelForm from './components/panels/PanelForm'
 import PanelTables from './components/panels/PanelTables'
 
 import requests from './utils/requests'
+import { onlyChars } from './utils/strings'
 import arrayHandler from './utils/array.handler'
 
 class CountryGrid extends React.Component {
@@ -90,7 +91,6 @@ class CountryGrid extends React.Component {
 	}
 
 	getSearchFields() {
-		// console.log("getSearchFields")
 		let searchFields = []
 
 		const groupByValues = this.statusOptions.groupBy.map(option => option.value)
@@ -146,17 +146,12 @@ class CountryGrid extends React.Component {
 		const searchCountries = (countryObj, textToFind) => {
 			const regex = new RegExp(textToFind, "gi")
 			
-			// console.log("this.searchFields")
-			// console.log(this.searchFields)
 			
 			const results = this.searchFields.map(fieldSearch => {
-				// console.log("fieldSearch")
-				// console.log(fieldSearch)
 				const value = countryObj[fieldSearch]
 				return regex.test(value)
 			})
 
-			// console.log(results)
 			if (results.indexOf(true) > -1) {
 				return true
 			}
@@ -164,11 +159,10 @@ class CountryGrid extends React.Component {
 			return false
 		}
 
-		if (state.search.trim().length > 0) {
-			// console.log("filtrando")
-			countries = countries.filter((country) => searchCountries(country, state.search))
-			// console.log("filtered")
-			// console.log(countries)
+		const search = onlyChars(state.search.trim(), /[0-9a-z ]/gi)
+
+		if (search.length > 0) {
+			countries = countries.filter((country) => searchCountries(country, search))
 		}
 
 		const newOrder = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
