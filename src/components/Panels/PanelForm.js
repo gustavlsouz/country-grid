@@ -2,6 +2,8 @@ import React from 'react'
 
 import { Form, Select, Text } from 'react-form';
 
+import {FormGroup} from './../form/FormGroup'
+
 const PanelForm = props => {
 
 	if (typeof props.statusOptions !== "object" || props.statusOptions === null) {
@@ -14,39 +16,25 @@ const PanelForm = props => {
 		return (null)
 	}
 
-	const FieldForm = props => {
-		return (
-			<span>
-				<label htmlFor={`select-input-${props.name}`}>{props.label}</label>
-				<Select field={props.field} id={`select-input-${props.name}`} options={props.options} className="mb-4" />
-			</span>
-		)
+
+	const FieldGroup = props => {
+		return React.Children.map(props.children, child => {
+			// return React.createElement(child)
+		})
 	}
 	
 	return (
 		<span className="container">
 			<Form onSubmit={submittedValues => props.onSubmit(submittedValues)}
-				onChange={props.onChange}
-			>
+				onChange={props.onChange} >
 				{formApi => (
 					<form onSubmit={formApi.submitForm} id="select-input-form" className="form">
-						<FieldForm
-							label="Group By"
-							name="group-by"
-							options={props.statusOptions.groupBy}
-							field="groupBy" />
-						<FieldForm
-							label="Order By"
-							name="order-by"
-							options={props.statusOptions.orderBy}
-							field="orderBy" />
-						<FieldForm
-							label="Order"
-							name="order-by-az"
-							options={props.statusOptions.orderByAZ}
-							field="orderByAZ" />
+												
+						<FormGroup component={Text} field="search" label="Search" />
 
-						<Text field="search"/>
+						<FormGroup component={Select} field="groupBy" label="Search" options={props.statusOptions.groupBy} />
+						<FormGroup component={Select} field="orderBy" label="Search" options={props.statusOptions.orderBy} />
+						<FormGroup component={Select} field="orderByAZ" label="Search" options={props.statusOptions.orderByAZ} />
 
 						<button type="submit" className="mb-4 btn btn-primary">Atualizar</button>
 					</form>
