@@ -9,7 +9,7 @@ const Row = props => {
 
     if (Children.count(props.children) > 0) {
         return (
-            <div className="row">
+            <div className="row center">
                 {Children.map(props.children, child => {
                     return cloneElement(child, childProps)
                 })}

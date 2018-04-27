@@ -278,7 +278,7 @@ class CountryGrid extends React.Component {
 
 	render() {
 		return (
-			<div id="country-grid">
+			<main id="country-grid">
 				<PanelForm statusOptions={this.statusOptions}
 					onSubmit={this.onSubmit} 
 					onChange={this.onChange}/>
@@ -288,7 +288,7 @@ class CountryGrid extends React.Component {
 						: null
 				}
 				{typeof this.state.view === "undefined" ? null : this.renderTables()}
-			</div>
+			</main>
 		)
 	}
 }

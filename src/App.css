@@ -43,3 +43,7 @@ span.group-item {
 .container {
   flex: 0.7
 }
+
+div.form-wrap {
+  margin-top: 35px;
+}
