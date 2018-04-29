@@ -1,4 +1,6 @@
 import React from 'react'
+import Q from 'q'
+import { ToastContainer, toast } from 'react-toastify';
 
 import PanelForm from './components/panels/PanelForm'
 import PanelTables from './components/panels/PanelTables'
@@ -19,6 +21,11 @@ class CountryGrid extends React.Component {
 			, orderByAZ: "order"
 			, search: ""
 			, showHashtags: true
+			, async: true
+		}
+
+		this.toastOptions = {
+			position: toast.POSITION.TOP_LEFT
 		}
 
 		/** orderBy
@@ -59,6 +66,10 @@ class CountryGrid extends React.Component {
 					value: 'population',
 				},
 				{
+					label: 'Capital',
+					value: 'capital',
+				},
+				{
 					label: "Currency",
 					value: 'currency',
 				},
@@ -78,28 +89,47 @@ class CountryGrid extends React.Component {
 			]
 		}
 
+		const statusOptions = this.statusOptions
 
+		this.statusOptions = Object.keys(statusOptions).reduce((obj, key) => {
+			let option = statusOptions[key]
 
-		this.makeView = this.makeView.bind(this)
+			option = option.sort((a, b) => {
+				if (a["value"] < b["value"]) return -1
+				if (a["value"] > b["value"]) return 1
+				return 0
+			})
+
+			obj[key] = option
+			return obj
+		}, {})
+
 		this.prepareCountries = this.prepareCountries.bind(this)
-		this.mountRow = this.mountRow.bind(this)
-		this.onSubmit = this.onSubmit.bind(this)
 		this.getSearchFields = this.getSearchFields.bind(this)
+
 		this.onChange = this.onChange.bind(this)
 		this.onToggle = this.onToggle.bind(this)
+		this.onToggleSearch = this.onToggleSearch.bind(this)
+
+		this.makeView = this.makeView.bind(this)
+		this.makeViewSync = this.makeViewSync.bind(this)
+		this.mountRow = this.mountRow.bind(this)
+
 		this.renderPanelTables = this.renderPanelTables.bind(this)
+		this.renderView = this.renderView.bind(this)
 
 		this.requests = requests()
 		this.searchFields = this.getSearchFields()
-
 
 	}
 
 	getSearchFields() {
 		let searchFields = []
 
-		const groupByValues = this.statusOptions.groupBy.map(option => option.value)
-		const orderByValues = this.statusOptions.orderBy.map(option => option.value)
+		const statusOptions = this.statusOptions
+
+		const groupByValues = statusOptions.groupBy.map(option => option.value)
+		const orderByValues = statusOptions.orderBy.map(option => option.value)
 
 		searchFields = searchFields.concat(groupByValues)
 		searchFields = searchFields.concat(orderByValues)
@@ -109,6 +139,14 @@ class CountryGrid extends React.Component {
 		return searchFields
 	}
 
+	renderView() {
+		if (this.state.async) {
+			this.makeView()
+		} else {
+			this.makeViewSync()
+		}
+	}
+
 	componentDidMount() {
 		this.requests.get(`/all`)
 			.then(resp => {
@@ -116,7 +154,7 @@ class CountryGrid extends React.Component {
 				 * neste caso para simplificar o agrupamento.
 				 */
 				const countries = this.prepareCountries(resp.data)
-				this.setState({ countries }, this.makeView)
+				this.setState({ countries }, this.renderView)
 			})
 	}
 
@@ -132,35 +170,122 @@ class CountryGrid extends React.Component {
 	}
 
 	makeView() {
+
 		const state = this.state
+			, orderBy = state.orderBy
+			;
+
+
+		const countries = state.countries
+			
+		const orderCountries = (countries) => {
+
+			const order = (a, b) => {
+				if (a[orderBy] < b[orderBy]) return -1
+				if (a[orderBy] > b[orderBy]) return 1
+				return 0
+			}
+
+			const reverseOrder = (a, b) => {
+				if (a[orderBy] > b[orderBy]) return -1
+				if (a[orderBy] < b[orderBy]) return 1
+				return 0
+			}
+
+			countries = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
+
+			return Q.resolve(countries)
+		}
+
+		const searchText = countries => {
+
+			const searchCountries = (countryObj, textToFind) => {
+				const regex = new RegExp(textToFind, "gi")
+				const searchFields = this.searchFields
+
+				for (let idx = 0; idx < searchFields.length; idx++) {
+					const fieldSearch = searchFields[idx]
+					const value = countryObj[fieldSearch]
+					const hasWords = regex.test(value)
+					if (hasWords) return true
+				}
+				return false
+			}
+
+			const search = onlyChars(state.search.trim(), /[0-9a-z ]/gi)
+			
+			if (search.length > 0) {
+				countries = countries.filter((country) => searchCountries(country, search))
+			}
+
+			return Q.resolve(countries)
+		}
+
+		const groupCountries = countries => {
+
+			countries = countries.reduce((obj, currentCountry) => {
+
+				const currentKeyGroup = currentCountry[state.groupBy]
+
+				if (obj[currentKeyGroup] === undefined) {
+					const newList = []
+					newList.push(currentCountry)
+					obj[currentKeyGroup] = newList
+
+				} else {
+					obj[currentKeyGroup].push(currentCountry)
+				}
+
+				return obj
+			}, {})
+
+			return Q.resolve(countries)
+		}
+		
+		orderCountries(countries)
+		.then(searchText)
+		.then(groupCountries)
+		.then(countries => {
+			this.setState({ view: countries })
+		})
+		.catch(err => {
+			toast.error("Ocorreu um erro ao realizar o filtro :(", this.toastOptions)
+		})
+	}
+
+	makeViewSync() {
+
+		const initialTime = Date.now()
+
+		const state = this.state
+			, orderBy = state.orderBy
+			;
+
 
 		let countries = state.countries
 
 		const order = (a, b) => {
-			if (a[state.orderBy] < b[state.orderBy]) return -1;
-			if (a[state.orderBy] > b[state.orderBy]) return 1;
-			return 0;
+			if (a[orderBy] < b[orderBy]) return -1
+			if (a[orderBy] > b[orderBy]) return 1
+			return 0
 		}
 
 		const reverseOrder = (a, b) => {
-			if (a[state.orderBy] > b[state.orderBy]) return -1;
-			if (a[state.orderBy] < b[state.orderBy]) return 1;
-			return 0;
+			if (a[orderBy] > b[orderBy]) return -1
+			if (a[orderBy] < b[orderBy]) return 1
+			return 0
 		}
 
 		const searchCountries = (countryObj, textToFind) => {
 			const regex = new RegExp(textToFind, "gi")
+			const searchFields = this.searchFields
 
-
-			const results = this.searchFields.map(fieldSearch => {
+			for (let idx = 0; idx < searchFields.length; idx++) {
+				const fieldSearch = searchFields[idx]
 				const value = countryObj[fieldSearch]
-				return regex.test(value)
-			})
-
-			if (results.indexOf(true) > -1) {
-				return true
+				const hasWords = regex.test(value)
+				if (hasWords) return true
 			}
-
 			return false
 		}
 
@@ -170,9 +295,9 @@ class CountryGrid extends React.Component {
 			countries = countries.filter((country) => searchCountries(country, search))
 		}
 
-		const newOrder = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
+		countries = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
 
-		const newGroup = newOrder.reduce((obj, currentCountry) => {
+		const newGroup = countries.reduce((obj, currentCountry) => {
 
 			const currentKeyGroup = currentCountry[state.groupBy]
 
@@ -188,6 +313,7 @@ class CountryGrid extends React.Component {
 			return obj
 		}, {})
 
+		console.log(`${Date.now() - initialTime} ms`)
 		this.setState({ view: newGroup })
 	}
 
@@ -209,9 +335,10 @@ class CountryGrid extends React.Component {
 	}
 
 	renderTables() {
+		const view = this.state.view
 
-		const tables = Object.keys(this.state.view).sort().map((key, idx) => {
-			const countryList = this.state.view[key]
+		const tables = Object.keys(view).sort().map((key, idx) => {
+			const countryList = view[key]
 
 			return (
 				<div id={`${key}`} key={key} className="container group-container">
@@ -249,23 +376,17 @@ class CountryGrid extends React.Component {
 		)
 	}
 
-	onSubmit(submittedValues) {
-
-		if (typeof submittedValues.orderBy && submittedValues.groupBy) {
-			this.setState(submittedValues, this.makeView)
-		}
-	}
-
-	onChange(formState, formApi) {
+	onChange(formState) {
 		const values = Object.assign({}, this.state, formState.values)
-
-		console.log(values)
-
-		this.setState(values, this.makeView)
+		this.setState(values, this.renderView)
 	}
 
 	onToggle(value) {
 		this.setState(prevState => ({ showHashtags: !prevState.showHashtags }))
+	}
+
+	onToggleSearch() {
+		this.setState(prevState => ({ async: !prevState.async }))
 	}
 
 	renderPanelTables() {
@@ -278,13 +399,15 @@ class CountryGrid extends React.Component {
 	render() {
 		return (
 			<div id="country-grid">
+				<ToastContainer />
 
 				<PanelForm statusOptions={this.statusOptions}
-					onSubmit={this.onSubmit}
-					onChange={this.onChange} 
+					onChange={this.onChange}
 					showHashtags={this.state.showHashtags}
 					onToggle={this.onToggle}
-					/>
+					async={this.state.async}
+					onToggleSearch={this.onToggleSearch}
+				/>
 
 
 				{

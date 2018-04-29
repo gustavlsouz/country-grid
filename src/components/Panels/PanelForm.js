@@ -48,14 +48,24 @@ const PanelForm = props => {
 		/>
 	)
 
+	const searchOption = (
+		<ToggleButton
+			inactiveLabel={'Sync'}
+			activeLabel={'Async'}
+			colors={toggleButtonColors}
+			thumbAnimateRange={[0, 36]}
+			value={props.async}
+			onToggle={props.onToggleSearch}
+		/>
+	)
+
 	return (
 		<div className="container col-md-6 form-wrap">
 			<Form onChange={props.onChange} >
 				{formApi => (
-					<form onSubmit={formApi.submitForm} id="col-md-10 select-input-form" className="form">
+					<form onChange={formApi.onChange} id="col-md-10 select-input-form" className="form">
 
 						<Row>
-
 							<FormGroup component={Select} field="groupBy" label="Group By" options={props.statusOptions.groupBy} />
 							<FormGroup component={Select} field="orderBy" label="Order By" options={props.statusOptions.orderBy} />
 							<FormGroup component={Select} field="orderByAZ" label="Order" options={props.statusOptions.orderByAZ} />
@@ -63,8 +73,13 @@ const PanelForm = props => {
 							<FormGroup component={Text} field="search" label="Search" />
 
 							<span className="form-group col-md-2">
-								<label>Mostrar Hashtags</label>
+								<label>Show Hashtags</label>
 								{toggle}
+							</span>
+
+							<span className="form-group col-md-2">
+								<label>Async Search</label>
+								{searchOption}
 							</span>
 						</Row>
 
