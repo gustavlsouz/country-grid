@@ -157,87 +157,89 @@ class CountryGrid extends React.Component {
 		return countries
 	}
 
+	orderCountries = (countries) => {
+
+		const { state } = this
+			, { orderBy } = state
+
+		const order = (a, b) => {
+			if (a[orderBy] < b[orderBy]) return -1
+			if (a[orderBy] > b[orderBy]) return 1
+			return 0
+		}
+
+		const reverseOrder = (a, b) => {
+			if (a[orderBy] > b[orderBy]) return -1
+			if (a[orderBy] < b[orderBy]) return 1
+			return 0
+		}
+
+		countries = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
+
+		return Q.resolve(countries)
+	}
+
+	groupCountries = countries => {
+		const state = this.state;
+
+		countries = countries.reduce((obj, currentCountry) => {
+
+			const currentKeyGroup = currentCountry[state.groupBy]
+
+			if (obj[currentKeyGroup] === undefined) {
+				const newList = []
+				newList.push(currentCountry)
+				obj[currentKeyGroup] = newList
+
+			} else {
+				obj[currentKeyGroup].push(currentCountry)
+			}
+
+			return obj
+		}, {})
+
+		return Q.resolve(countries)
+	}
+
+	searchText = countries => {
+
+		const { state } = this
+
+		const searchCountries = (countryObj, textToFind) => {
+			const regex = new RegExp(textToFind, "gi")
+			const searchFields = this.searchFields
+
+			for (let idx = 0; idx < searchFields.length; idx++) {
+				const fieldSearch = searchFields[idx]
+				const value = countryObj[fieldSearch]
+				const hasWords = regex.test(value)
+				if (hasWords) return true
+			}
+			return false
+		}
+
+		const search = onlyChars(state.search.trim(), /[0-9a-z ]/gi)
+
+		if (search.length > 0) {
+			countries = countries.filter((country) => searchCountries(country, search))
+		}
+
+		return Q.resolve(countries)
+	}
+
 	makeView = () => {
 
-		const state = this.state
-			, orderBy = state.orderBy
-			;
+		const { countries } = this.state;
 
-
-		const countries = state.countries
-
-		const orderCountries = (countries) => {
-
-			const order = (a, b) => {
-				if (a[orderBy] < b[orderBy]) return -1
-				if (a[orderBy] > b[orderBy]) return 1
-				return 0
-			}
-
-			const reverseOrder = (a, b) => {
-				if (a[orderBy] > b[orderBy]) return -1
-				if (a[orderBy] < b[orderBy]) return 1
-				return 0
-			}
-
-			countries = countries.sort(state.orderByAZ === "reverseOrder" ? reverseOrder : order)
-
-			return Q.resolve(countries)
-		}
-
-		const searchText = countries => {
-
-			const searchCountries = (countryObj, textToFind) => {
-				const regex = new RegExp(textToFind, "gi")
-				const searchFields = this.searchFields
-
-				for (let idx = 0; idx < searchFields.length; idx++) {
-					const fieldSearch = searchFields[idx]
-					const value = countryObj[fieldSearch]
-					const hasWords = regex.test(value)
-					if (hasWords) return true
-				}
-				return false
-			}
-
-			const search = onlyChars(state.search.trim(), /[0-9a-z ]/gi)
-
-			if (search.length > 0) {
-				countries = countries.filter((country) => searchCountries(country, search))
-			}
-
-			return Q.resolve(countries)
-		}
-
-		const groupCountries = countries => {
-
-			countries = countries.reduce((obj, currentCountry) => {
-
-				const currentKeyGroup = currentCountry[state.groupBy]
-
-				if (obj[currentKeyGroup] === undefined) {
-					const newList = []
-					newList.push(currentCountry)
-					obj[currentKeyGroup] = newList
-
-				} else {
-					obj[currentKeyGroup].push(currentCountry)
-				}
-
-				return obj
-			}, {})
-
-			return Q.resolve(countries)
-		}
-
-		orderCountries(countries)
-			.then(searchText)
-			.then(groupCountries)
+		this.orderCountries(countries)
+			.then(this.searchText)
+			.then(this.groupCountries)
 			.then(countries => {
 				this.setState({ view: countries })
 			})
 			.catch(err => {
 				toast.error("Ocorreu um erro ao realizar o filtro :(", this.toastOptions)
+				toast.error(err.message);
 			})
 	}
 
@@ -361,7 +363,7 @@ class CountryGrid extends React.Component {
 		})
 
 		return (
-			<div>
+			<div id="tables-wrapper">
 				{tables}
 			</div>
 		)
@@ -403,7 +405,7 @@ class CountryGrid extends React.Component {
 
 				<this.renderPanelTables />
 
-				{typeof this.state.view === "undefined" ? null : this.renderTables()}
+				{typeof this.state.view === "undefined" ? null : <this.renderTables />}
 			</div>
 		)
 	}
