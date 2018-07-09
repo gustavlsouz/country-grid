@@ -15,7 +15,7 @@ class CountryGrid extends React.Component {
 	constructor(props) {
 		super(props)
 
-		this.state = {
+		const initialState = {
 			orderBy: "name"
 			, groupBy: "region"
 			, orderByAZ: "order"
@@ -23,6 +23,9 @@ class CountryGrid extends React.Component {
 			, showHashtags: true
 			, async: true
 		}
+
+		this.initialState = initialState;
+		this.state = initialState;
 
 		this.toastOptions = {
 			position: toast.POSITION.TOP_LEFT
@@ -41,7 +44,7 @@ class CountryGrid extends React.Component {
 		 * language
 		*/
 
-		this.statusOptions = {
+		const statusOptions = {
 			groupBy: [
 				{
 					label: 'Region',
@@ -89,57 +92,42 @@ class CountryGrid extends React.Component {
 			]
 		}
 
-		const statusOptions = this.statusOptions
-
 		this.statusOptions = Object.keys(statusOptions).reduce((obj, key) => {
-			let option = statusOptions[key]
 
-			option = option.sort((a, b) => {
+			const option = statusOptions[key].sort((a, b) => {
 				if (a["value"] < b["value"]) return -1
 				if (a["value"] > b["value"]) return 1
 				return 0
 			})
 
 			obj[key] = option
+
 			return obj
 		}, {})
-
-		this.prepareCountries = this.prepareCountries.bind(this)
-		this.getSearchFields = this.getSearchFields.bind(this)
-
-		this.onChange = this.onChange.bind(this)
-		this.onToggle = this.onToggle.bind(this)
-		this.onToggleSearch = this.onToggleSearch.bind(this)
-
-		this.makeView = this.makeView.bind(this)
-		this.makeViewSync = this.makeViewSync.bind(this)
-		this.mountRow = this.mountRow.bind(this)
-
-		this.renderPanelTables = this.renderPanelTables.bind(this)
-		this.renderView = this.renderView.bind(this)
 
 		this.requests = requests()
 		this.searchFields = this.getSearchFields()
 
 	}
 
-	getSearchFields() {
-		let searchFields = []
+	getSearchFields = () => {
+
+		const searchFields = [];
 
 		const statusOptions = this.statusOptions
 
 		const groupByValues = statusOptions.groupBy.map(option => option.value)
 		const orderByValues = statusOptions.orderBy.map(option => option.value)
 
-		searchFields = searchFields.concat(groupByValues)
-		searchFields = searchFields.concat(orderByValues)
+		const searchFieldsGroupByValuesList = searchFields.concat(groupByValues)
+		const searchFieldsGroupByValOrderByVal = searchFieldsGroupByValuesList.concat(orderByValues)
+		const finalSearchFields = arrayHandler.distinct(searchFieldsGroupByValOrderByVal)
 
-		searchFields = arrayHandler.distinct(searchFields)
+		return finalSearchFields
 
-		return searchFields
 	}
 
-	renderView() {
+	renderView = () => {
 		if (this.state.async) {
 			this.makeView()
 		} else {
@@ -147,7 +135,7 @@ class CountryGrid extends React.Component {
 		}
 	}
 
-	componentDidMount() {
+	componentDidMount = () => {
 		this.requests.get(`/all`)
 			.then(resp => {
 				/**
@@ -158,7 +146,7 @@ class CountryGrid extends React.Component {
 			})
 	}
 
-	prepareCountries(countries) {
+	prepareCountries = (countries) => {
 		countries = countries.map((country) => {
 
 			country.currency = country.currencies[0]["name"]
@@ -169,7 +157,7 @@ class CountryGrid extends React.Component {
 		return countries
 	}
 
-	makeView() {
+	makeView = () => {
 
 		const state = this.state
 			, orderBy = state.orderBy
@@ -177,7 +165,7 @@ class CountryGrid extends React.Component {
 
 
 		const countries = state.countries
-			
+
 		const orderCountries = (countries) => {
 
 			const order = (a, b) => {
@@ -213,7 +201,7 @@ class CountryGrid extends React.Component {
 			}
 
 			const search = onlyChars(state.search.trim(), /[0-9a-z ]/gi)
-			
+
 			if (search.length > 0) {
 				countries = countries.filter((country) => searchCountries(country, search))
 			}
@@ -241,19 +229,19 @@ class CountryGrid extends React.Component {
 
 			return Q.resolve(countries)
 		}
-		
+
 		orderCountries(countries)
-		.then(searchText)
-		.then(groupCountries)
-		.then(countries => {
-			this.setState({ view: countries })
-		})
-		.catch(err => {
-			toast.error("Ocorreu um erro ao realizar o filtro :(", this.toastOptions)
-		})
+			.then(searchText)
+			.then(groupCountries)
+			.then(countries => {
+				this.setState({ view: countries })
+			})
+			.catch(err => {
+				toast.error("Ocorreu um erro ao realizar o filtro :(", this.toastOptions)
+			})
 	}
 
-	makeViewSync() {
+	makeViewSync = () => {
 
 		const initialTime = Date.now()
 
@@ -317,7 +305,7 @@ class CountryGrid extends React.Component {
 		this.setState({ view: newGroup })
 	}
 
-	mountRow(country, idx) {
+	mountRow = (country, idx) => {
 
 		return (
 			<tr key={`${country}-${idx}`}>
@@ -334,7 +322,7 @@ class CountryGrid extends React.Component {
 		)
 	}
 
-	renderTables() {
+	renderTables = () => {
 		const view = this.state.view
 
 		const tables = Object.keys(view).sort().map((key, idx) => {
@@ -342,29 +330,32 @@ class CountryGrid extends React.Component {
 
 			return (
 				<div id={`${key}`} key={key} className="container group-container">
-					<span>
-						<h4>{key}</h4>
-					</span>
-					<table id={`${key}-${idx}`} className="table table-striped">
-						<thead>
-							<tr>
-								<th>Flag</th>
-								<th>Name</th>
-								<th>Native Name</th>
-								<th>Region</th>
-								<th>Capital</th>
-								<th>Code</th>
-								<th>Population(Million)</th>
-								<th>Currency</th>
-								<th>Language</th>
-							</tr>
-						</thead>
-						<tbody>
-							{
-								countryList.map(this.mountRow)
-							}
-						</tbody>
-					</table>
+					<div className="panel panel-primary">
+						<div className="panel-heading">
+							<h4 className="panel-title">{key}</h4>
+						</div>
+
+						<table id={`${key}-${idx}`} className="table table-striped">
+							<thead>
+								<tr>
+									<th>Flag</th>
+									<th>Name</th>
+									<th>Native Name</th>
+									<th>Region</th>
+									<th>Capital</th>
+									<th>Code</th>
+									<th>Population(Million)</th>
+									<th>Currency</th>
+									<th>Language</th>
+								</tr>
+							</thead>
+							<tbody>
+								{
+									countryList.map(this.mountRow)
+								}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			)
 		})
@@ -376,27 +367,27 @@ class CountryGrid extends React.Component {
 		)
 	}
 
-	onChange(formState) {
+	onChange = (formState) => {
 		const values = Object.assign({}, this.state, formState.values)
 		this.setState(values, this.renderView)
 	}
 
-	onToggle(value) {
+	onToggle = (value) => {
 		this.setState(prevState => ({ showHashtags: !prevState.showHashtags }))
 	}
 
-	onToggleSearch() {
+	onToggleSearch = () => {
 		this.setState(prevState => ({ async: !prevState.async }))
 	}
 
-	renderPanelTables() {
+	renderPanelTables = () => {
 		if (typeof this.state.view === "object" && this.state.showHashtags) {
 			return (<PanelTables list={Object.keys(this.state.view).sort()} />)
 		}
 		return null
 	}
 
-	render() {
+	render = () => {
 		return (
 			<div id="country-grid">
 				<ToastContainer />
@@ -410,9 +401,7 @@ class CountryGrid extends React.Component {
 				/>
 
 
-				{
-					this.renderPanelTables()
-				}
+				<this.renderPanelTables />
 
 				{typeof this.state.view === "undefined" ? null : this.renderTables()}
 			</div>

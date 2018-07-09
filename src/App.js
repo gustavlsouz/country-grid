@@ -17,7 +17,7 @@ class App extends Component {
     return (
       <main className="App">
         
-        <Header title="Welcome to the country grid!! :)"
+        <Header title="Welcome to the Country Grid!! :)"
           logo={logo} />
 
         <CountryGrid />
