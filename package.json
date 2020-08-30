@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "axios": "^0.18.0",
-    "bootstrap": "^4.1.0",
-    "jquery": "^3.3.1",
+    "axios": "^0.18.1",
+    "bootstrap": "^4.5.0",
+    "prop-types": "^15.7.2",
     "q": "^1.5.1",
-    "react": "^16.3.2",
-    "react-dom": "^16.3.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "react-form": "^3.5.3",
-    "react-scripts": "1.1.4",
+    "react-scripts": "^3.4.1",
     "react-toastify": "^4.0.0-rc.5",
     "react-toggle-button": "^2.2.0"
   },
@@ -19,5 +19,25 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.20.0",
+    "eslint-plugin-react-hooks": "^4.0.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

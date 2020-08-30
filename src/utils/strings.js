@@ -1,3 +1,4 @@
+import { firstLetters } from './regex'
 const onlyChars = (string, regex = /[0-9a-z ]+/gi, join = "", options) => {
 
     const defaultOptions = {
@@ -6,7 +7,7 @@ const onlyChars = (string, regex = /[0-9a-z ]+/gi, join = "", options) => {
 
     options = Object.assign({}, defaultOptions, options)
 
-    if (typeof string === "string") {
+    if (string && string.__proto__ === String.prototype) {
 
         const result = string.match(regex)
 
@@ -21,8 +22,8 @@ const onlyChars = (string, regex = /[0-9a-z ]+/gi, join = "", options) => {
 }
 
 const capitalize = string => {
-    if (typeof string === "string") {
-        string = string.replace(/\b\w/g, l => l.toUpperCase())
+    if (string && string.__proto__ === String.prototype) {
+        string = string.replace(firstLetters, l => l.toUpperCase())
     }
     return string
 }

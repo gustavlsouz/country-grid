@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import Header from './Header'
 
-import CountryGrid from './CountryGrid'
+import CountryGridHooks from './containers/CountryGridHooks'
 
 import './App.css';
 
@@ -16,11 +16,11 @@ class App extends Component {
   render() {
     return (
       <main className="App">
-        
+
         <Header title="Welcome to the Country Grid!! :)"
           logo={logo} />
 
-        <CountryGrid />
+        <CountryGridHooks />
 
       </main>
     );
